@@ -1,13 +1,8 @@
-//import imageAPI from '../services/pixabay-api';
 import React, { Component } from 'react';
 import ImageGallery from 'ImageGallery';
-import ImagesErrorView from 'ImagesErrorView';
+import s from './ImageInfo.module.css';
 import Button from 'Button';
 import Modal from 'Modal';
-// import ImageGallery from 'ImageGallery';
-// import ImagesPendingView from './ImagesPendingView';
-// import ImagesErrorView from './ImagesErrorView';
-// import ImageGallery from './ImageGallery';
 // import PropTypes from 'prop-types'
 const Status = {
   IDLE: 'idle',
@@ -31,33 +26,46 @@ export default class ImageInfo extends Component {
       this.setState({ status: Status.PENDING });
 
       fetch(
-        `https://pixabay.com/api/?image_type=photo&orientation=horizontal&per_page=12&q=${this.props.query}&key=23459982-aeff0c389b47d03a141af0a17`,
+        `https://pixabay.com/api/?image_type=photo&orientation=horizontal&per_page=12&q=${this.props.query}&page=${this.state.page}&key=23459982-aeff0c389b47d03a141af0a17`,
       )
         .then(respons => {
-          if (respons.ok) {
-            return respons.json();
-          }
-
-          return Promise.reject(
-            new Error(`Sorry we dont have$ {this.props.query}`),
-          );
+          return respons.json();
         })
         .then(photo =>
           this.setState({
             photo: [...photo.hits],
             page: this.state.page + 1,
+
             status: Status.RESOLVED,
           }),
         )
         .catch(error => this.setState({ error, status: Status.REJECTED }));
     }
-    console.log(this.state);
   }
   loadMore = () => {
-    this.setState(() => ({
-      page: this.state.page + 1,
-    }));
+    fetch(
+      `https://pixabay.com/api/?image_type=photo&orientation=horizontal&per_page=12&q=${this.props.query}&page=${this.state.page}&key=23459982-aeff0c389b47d03a141af0a17`,
+    )
+      .then(respons => {
+        return respons.json();
+      })
+      .then(newPhoto =>
+        this.setState(({ photo }) => {
+          return {
+            photo: [...photo, ...newPhoto.hits],
+            page: this.state.page + 1,
+
+            status: Status.RESOLVED,
+          };
+        }),
+      )
+      .catch(error => this.setState({ error, status: Status.REJECTED }));
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
   };
+
   toggleModal = modalUrl => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
@@ -73,14 +81,16 @@ export default class ImageInfo extends Component {
     const { photo, status } = this.state;
 
     if (status === 'idle') {
-      return <div>Please enter your search </div>;
+      return <div className={s.status__message}>Please enter your search </div>;
     }
     if (status === 'pending') {
-      return <div>loading...</div>;
+      return <div className={s.status__message}>loading...</div>;
     }
 
     if (photo.length === 0) {
-      return <p>Sorry we nothing find for you</p>;
+      return (
+        <div className={s.status__message}>Sorry we nothing found for you</div>
+      );
     }
     if (status === 'resolved') {
       return (
@@ -88,14 +98,10 @@ export default class ImageInfo extends Component {
           {this.state.showModal && (
             <Modal onClose={this.toggleModal} modalUrl={this.state.modalUrl} />
           )}
-          <ImageGallery photo={photo} onImgClick={this.onGalleryCardClick} />;
+          <ImageGallery photo={photo} onImgClick={this.onGalleryCardClick} />
+          {this.state.photo.length > 10 && <Button onClick={this.loadMore} />}
         </>
       );
     }
-
-    // if ([...photo.hits].page > 2) {
-    //   console.log(photo);
-    //   return <Button onClick={this.loadMore}>Load More</Button>;
-    // }
   }
 }

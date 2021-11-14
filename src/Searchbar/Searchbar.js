@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import { toast } from 'react-toastify';
+import s from './Searchbar.module.css';
 // import { ImSearch } from 'react-icons.in';
-// import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 
 export default class Searchbar extends Component {
-  // static propTypes = {
-  //   prop: PropTypes
-  // }
+  static propTypes = {
+    onSubmit: PropTypes.func,
+  };
   state = {
     query: '',
   };
@@ -26,21 +27,21 @@ export default class Searchbar extends Component {
 
   render() {
     return (
-      <header className="Searchbar">
-        <form className="SearchForm" onSubmit={this.handleQuerySubmit}>
-          <button type="submit" className="SearchForm-button">
-            <span className="SearchForm-button-label">Search</span>
+      <header className={s.Searchbar__header}>
+        <form className={s.SearchForm} onSubmit={this.handleQuerySubmit}>
+          <button type="submit" className={s.SearchFormButton}>
+            <span className={s.SearchFormButton__label}>Search</span>
             {/* <ImSearch /> */}
           </button>
 
           <input
-            className="SearchForm-input"
+            className={s.SearchForm__input}
             type="text"
             name="query"
             value={this.state.query}
             onChange={this.handleQueryChange}
-            // autocomplete="off"
-            // autofocus
+            // autoComplete="off"
+            // autoFocus
             placeholder="Search images and photos"
           />
         </form>
